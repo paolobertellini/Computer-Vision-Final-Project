@@ -1,4 +1,4 @@
-
+#import yolo
 
 def main():
     print("Hello vombati!")
