@@ -1,20 +1,69 @@
 import numpy as np
 
-from scipy import signal
 import cv2
-import math
 def nothing(x):
     pass
 
-cap = cv2.VideoCapture('/home/davide/PycharmProjects/HSVedge/VIRB0400.MP4')
+cap = cv2.VideoCapture('VIRB0400.MP4')
 cv2.namedWindow("Trackbars")
 
 cv2.createTrackbar("Th1", "Trackbars", 0, 500, nothing)
 cv2.createTrackbar("Th2", "Trackbars", 0, 500, nothing)
 
+
 while(cap.isOpened()):
     ret, frame = cap.read()
-    frame = cv2.medianBlur(frame, ksize=9)
+
+    _width = cap.get(3)
+    _height = cap.get(4)
+    _margin = 0.0
+
+    corners = np.array(
+        [
+            [[_margin, _margin]],
+            [[_margin, _height + _margin]],
+            [[_width + _margin, _height + _margin]],
+            [[_width +_margin, _margin]],
+        ]
+    )
+
+    pts_dst = np.array( corners,np.float32 )
+
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    gray = cv2.bilateralFilter(gray, 1, 10, 120)
+    Th1 = 60#cv2.getTrackbarPos("Th1", "Trackbars")
+    Th2 = 50#cv2.getTrackbarPos("Th2", "Trackbars")
+    edges = cv2.Canny(gray, Th1, Th2)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
+    closed = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
+    contours, h = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    for cont in contours:
+        if cv2.contourArea(cont) > 5000:
+            arc_len = cv2.arcLength(cont, True)
+            approx = cv2.approxPolyDP(cont, 0.1 * arc_len, True)
+            if (len(approx) == 4):
+                IS_FOUND = 1
+                pts_src = np.array(approx, np.float32)
+                h, status = cv2.findHomography(pts_src, pts_dst)
+                out = cv2.warpPerspective(frame, h, (int(_width + _margin * 2), int(_height + _margin * 2)))
+                cv2.drawContours(frame, [approx], -1, (0, 255, 0), 3)
+            else:
+                pass
+
+        #cv2.imshow( 'closed', closed )
+        #cv2.imshow( 'gray', gray )
+        cv2.namedWindow('edges', cv2.WINDOW_NORMAL)
+        cv2.imshow('edges', edges)
+
+
+        cv2.namedWindow('rgb', cv2.WINDOW_NORMAL)
+        cv2.imshow('rgb', frame)
+        cv2.imwrite('linesDetected.jpg', frame)
+
+
+
+    '''frame = cv2.medianBlur(frame, ksize=9)
     Z = frame.reshape((-1, 3))
     Z = np.float32(Z)
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
@@ -23,9 +72,7 @@ while(cap.isOpened()):
     center = np.uint8(center)
     res = center[label.flatten()]
     res2 = res.reshape((frame.shape))
-    Th1 = cv2.getTrackbarPos("Th1", "Trackbars")
-    Th2 = cv2.getTrackbarPos("Th2", "Trackbars")
-    edges = cv2.Canny(res2, Th1, Th2)
+
     contours, hierarchy = cv2.findContours(edges,
                                            cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     cv2.drawContours(frame, contours, -1, (0, 255, 0), 3)
@@ -33,7 +80,7 @@ while(cap.isOpened()):
     for line in lines:
         x1,y1,x2,y2=line[0]
         #cv2.line(frame,(x1,y1),(x2,y2), (0, 0, 255),5)
-    '''for r, theta in lines[0]:
+    for r, theta in lines[0]:
         # Stores the value of cos(theta) in a
         a = np.cos(theta)
 
@@ -61,15 +108,15 @@ while(cap.isOpened()):
         # cv2.line draws a line in img from the point(x1,y1) to (x2,y2).
         # (0,0,255) denotes the colour of the line to be
         # drawn. In this case, it is red.
-        cv2.line(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)'''
+        cv2.line(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
         # All the changes made in the input image are finally
     # written on a new image houghlines.jpg
-    cv2.imwrite('linesDetected.jpg', frame)
+    
     cv2.imshow('mask', res2)
-    cv2.imshow('mask1', frame)
+    cv2.imshow('mask1', frame)'''
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
 cap.release()
-cv2.destroyAllWindowsows()
+cv2.destroyAllWindows()
