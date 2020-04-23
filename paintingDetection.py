@@ -27,7 +27,6 @@ def paintingDetection(frame):
                 cv2.drawContours(blur, [approx], 0, (0, 255, 0), 3)
     cv2.drawContours(blur, approx, -1, (0, 255, 0), 3)
 
-
    # detected_circles = cv2.HoughCircles(mask, cv2.HOUGH_GRADIENT, 1, 20, param1=50,
    #                                         param2=30, minRadius=500, maxRadius=900)
    #
