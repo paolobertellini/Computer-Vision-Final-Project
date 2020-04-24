@@ -16,7 +16,7 @@ cv2.createTrackbar("Hg", "Trackbars", 255, 255, nothing)
 cv2.createTrackbar("Sg", "Trackbars", 255, 255, nothing)
 cv2.createTrackbar("Vg", "Trackbars", 255, 255, nothing)
 
-
+#1
 for videoFile in videos:
 
     video = cv2.VideoCapture(path + videoFile)
