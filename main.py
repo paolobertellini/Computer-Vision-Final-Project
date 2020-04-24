@@ -1,6 +1,7 @@
 import cv2
 import os
 from paintingDetection import paintingDetection
+from paintingDetectionAdaThres import paintingDetectionAdaThres
 
 paolo_path = 'C:/VCS-project/VCS-project/Project material/videos/all/'
 dav_path = '/media/davide/aukey/progetto_vision/videos/'
@@ -32,8 +33,8 @@ for videoFile in videos:
         if frame is not None:
             frame_counter += 1
 
-            frame, thr = paintingDetection(frame)
-
+            #frame, thr = paintingDetection(frame)
+            frame, thr = paintingDetectionAdaThres(frame)
             # -- output --
             cv2.namedWindow('input', cv2.WINDOW_NORMAL)
             cv2.namedWindow('edges', cv2.WINDOW_NORMAL)
