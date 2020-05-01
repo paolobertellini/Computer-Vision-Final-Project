@@ -6,8 +6,11 @@ from circleDetection import circleDetection
 
 def paintingDetection(frame):
 
+    frame = cv2.erode(frame, None, iterations=2)
+    frame = cv2.dilate(frame, None, iterations=2)
     # frame = cv2.fastNlMeansDenoisingColored(frame, None, 10, 10, 7, 11)
-    frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
     # frame= cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     # clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     # frame2 = cv2.equalizeHist(frame)
@@ -20,10 +23,12 @@ def paintingDetection(frame):
     Sg = cv2.getTrackbarPos("Sg", "Trackbars")
     Vg = cv2.getTrackbarPos("Vg", "Trackbars")
 
-    mask = cv2.inRange(frame_gray, (Hl, Sl, Vl), (Hg, Sg, Vg))
+    mask = cv2.inRange(frame_hsv, (Hl, Sl, Vl), (Hg, Sg, Vg))
     mask = 255 - mask
 
     contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    # h = cv2.calcHist(frame, 3, mask, histSize, ranges[, hist[, accumulate]])
 
     for cnt in contours:
         epsilon = 0.1 * cv2.arcLength(cnt, True)
@@ -35,5 +40,7 @@ def paintingDetection(frame):
     # cv2.drawContours(frame, approx, -1, (0, 255, 0), 3)
 
     # edges, frame = circleDetection(frame_gray)
+
+
 
     return frame, mask
