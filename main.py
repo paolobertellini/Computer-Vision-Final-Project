@@ -30,7 +30,9 @@ for videoFile in videos:
 
             frame_counter += 1
 
-            if frame_counter % 1 == 0:
+            if frame_counter % 100 == 0:
+
+                print(frame_counter)
 
                 frame, mask = paintingDetection(frame)
 
