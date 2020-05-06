@@ -4,8 +4,9 @@ from paintingDetection import paintingDetection
 
 paolo_path = 'C:/VCS-project/VCS-project/Project material/videos/all/'
 dav_path = '/media/davide/aukey/progetto_vision/videos/'
+pepp_path = '/media/peppepc/Volume/Peppe/Unimore/Vision and Cognitive Systems/Project material/videos/'
 
-path = paolo_path
+path = pepp_path
 videos = os.listdir(path)
 def nothing(x): pass
 

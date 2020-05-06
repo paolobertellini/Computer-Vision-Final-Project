@@ -22,16 +22,13 @@ def perspectiveRectification(frame, approx):
     values = [(approx[0][0][0], approx[0][0][1]), (approx[1][0][0], approx[1][0][1]),
               (approx[2][0][0], approx[2][0][1]), (approx[3][0][0], approx[3][0][1])]
     box = np.array(values, dtype)
-
-    print('UNSORTED', box)
     box, ratio = adjustBox(box)
-    print(box)
-    # input("Press Enter to continue...")
 
-    # rows, cols, ch = box.shape
     cardH = math.sqrt((box[2][0] - box[1][0]) * (box[2][0] - box[1][0]) +
                       (box[2][1] - box[1][1]) * (box[2][1] - box[1][1]))
-    cardW = ratio * cardH;
+    #cardW = ratio * cardH;
+    cardW = math.sqrt((box[0][0] - box[1][0]) * (box[0][0] - box[1][0]) +
+                      (box[0][1] - box[1][1]) * (box[0][1] - box[1][1]))
     rect_box = np.float32([[box[0][0], box[0][1]], [box[0][0] + cardW, box[0][1]],
                            [box[0][0] + cardW, box[0][1] + cardH], [box[0][0], box[0][1] + cardH]])
 
