@@ -46,7 +46,7 @@ for videoFile in videos:
 
             frame_counter += 1
 
-            if frame_counter % 50 == 0:
+            if frame_counter % 5 == 0:
 
                 frame, mask, edges, out = paintingDetection(frame)
 
@@ -60,7 +60,7 @@ for videoFile in videos:
                 cv2.namedWindow('Edges', cv2.WINDOW_NORMAL)
                 cv2.moveWindow("Edges", 370, 30)
                 cv2.resizeWindow("Edges", 400, 250)
-                cv2.namedWindow('Painting', cv2.WINDOW_AUTOSIZE)
+                cv2.namedWindow('Painting', cv2.WINDOW_NORMAL)
                 cv2.moveWindow("Painting", 1000, 350)
 
 
