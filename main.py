@@ -68,7 +68,7 @@ for videoFile in videos:
                 cv2.imshow('Mask', mask)
                 cv2.imshow('Edges', edges)
                 if out is not None and np.size(out) != 0:
-                    # cv2.resizeWindow("Painting", out.shape[1] // 5, out.shape[0] // 5)
+                    cv2.resizeWindow("Painting", out.shape[1] // 5, out.shape[0] // 5)
                     cv2.imshow('Painting', out)
 
         # stop
