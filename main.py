@@ -60,16 +60,16 @@ for videoFile in videos:
                 cv2.namedWindow('Edges', cv2.WINDOW_NORMAL)
                 cv2.moveWindow("Edges", 370, 30)
                 cv2.resizeWindow("Edges", 400, 250)
-                cv2.namedWindow('Painting', cv2.WINDOW_NORMAL)
+                cv2.namedWindow('Painting', cv2.WINDOW_AUTOSIZE)
                 cv2.moveWindow("Painting", 1000, 350)
 
 
                 cv2.imshow('Detections', frame)
                 cv2.imshow('Mask', mask)
                 cv2.imshow('Edges', edges)
-                # if out is not None and np.size(out) != 0:
-                #     cv2.resizeWindow("Painting", out.shape[1] // 5, out.shape[0] // 5)
-                #     cv2.imshow('Painting', out)
+                if out is not None and np.size(out) != 0:
+                    # cv2.resizeWindow("Painting", out.shape[1] // 5, out.shape[0] // 5)
+                    cv2.imshow('Painting', out)
 
         # stop
         if (cv2.waitKey(1) & 0xFF == ord('n')) or frame_counter == video.get(cv2.CAP_PROP_FRAME_COUNT)-1:
