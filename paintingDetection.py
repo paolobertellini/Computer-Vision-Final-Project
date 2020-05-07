@@ -3,6 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from perspectiveRectification import perspectiveRectification
+from circleDetection import circleDetection
 
 
 def paintingDetection(original):
@@ -20,18 +21,19 @@ def paintingDetection(original):
     # frame= cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     # clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
 
-    Hl = cv2.getTrackbarPos("Hl", "Trackbars")
-    Sl = cv2.getTrackbarPos("Sl", "Trackbars")
-    Vl = cv2.getTrackbarPos("Vl", "Trackbars")
-    Hg = cv2.getTrackbarPos("Hg", "Trackbars")
-    Sg = cv2.getTrackbarPos("Sg", "Trackbars")
-    Vg = cv2.getTrackbarPos("Vg", "Trackbars")
+    Hl = cv2.getTrackbarPos("Hl", "Mask trackbars")
+    Sl = cv2.getTrackbarPos("Sl", "Mask trackbars")
+    Vl = cv2.getTrackbarPos("Vl", "Mask trackbars")
+    Hg = cv2.getTrackbarPos("Hg", "Mask trackbars")
+    Sg = cv2.getTrackbarPos("Sg", "Mask trackbars")
+    Vg = cv2.getTrackbarPos("Vg", "Mask trackbars")
 
     mask = cv2.inRange(frame_hsv, (Vl, Sl, Hl), (Vg, Sg, Hg))
     # mask = cv2.medianBlur(mask, 21)
     # mask = 255 - mask
 
     contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    out = None
 
     for cnt in contours:
 
@@ -55,4 +57,6 @@ def paintingDetection(original):
                 plt.subplot(223), plt.imshow(rect_frame[:, :, ::-1]), plt.title('Warp')
                 plt.show()
 
-    return frame, mask
+    frame, edges = circleDetection(original, frame)
+
+    return frame, mask, edges, out
