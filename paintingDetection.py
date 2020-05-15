@@ -1,62 +1,110 @@
 import cv2
-import numpy as np
-from matplotlib import pyplot as plt
-
+import time
 from perspectiveRectification import perspectiveRectification
-from circleDetection import circleDetection
+from paintingRetrieval import retrieval
+import matplotlib.pyplot as plt
+import numpy as np
 
+p = 60
+b = p - 5
+save = False
 
-def paintingDetection(original):
+def cut(bordered, bbox):
+    x, y, w, h = bbox
+    return bordered[y:y + h + 2 * b, x:x + w + 2 * b]
 
-    frame = cv2.erode(original, None, iterations=2)
-    # frame = cv2.dilate(frame, None, iterations=2)
-
-    # frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-    # frame = cv2.fastNlMeansDenoisingColored(frame, None, 10, 10, 7, 11)
-    # frame = cv2.equalizeHist(frame)
-    frame = cv2.medianBlur(frame, 13)
+def detection(frame):
     frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    frame_hsv = cv2.erode(frame_hsv, None, iterations=5)
+    frame_hsv = cv2.medianBlur(frame_hsv, 17)
 
-    # frame= cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    # clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-
-    Hl = cv2.getTrackbarPos("Hl", "Mask trackbars")
-    Sl = cv2.getTrackbarPos("Sl", "Mask trackbars")
-    Vl = cv2.getTrackbarPos("Vl", "Mask trackbars")
-    Hg = cv2.getTrackbarPos("Hg", "Mask trackbars")
-    Sg = cv2.getTrackbarPos("Sg", "Mask trackbars")
-    Vg = cv2.getTrackbarPos("Vg", "Mask trackbars")
-
-    mask = cv2.inRange(frame_hsv, (Vl, Sl, Hl), (Vg, Sg, Hg))
-    # mask = cv2.medianBlur(mask, 21)
-    # mask = 255 - mask
-
+    mask = cv2.inRange(frame_hsv, (0, 0, 80), (255, 255, 255))
+    mask = 255 - mask
     contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    detections = []
+
+    for i, cnt in enumerate(contours):
+
+        epsilon = 0.05 * cv2.arcLength(cnt, True)
+        approx = cv2.approxPolyDP(cnt, epsilon, True)
+
+        if cv2.contourArea(approx) > 20000:
+            if len(approx) == 4:
+                detections.append(approx)
+
+    return detections
+
+
+def boundingBox(frame):
+
+    detections = []
+
+    frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    frame_hsv = cv2.erode(frame_hsv, None, iterations=5)
+    frame_hsv = cv2.medianBlur(frame_hsv, 17)
+
+    mask = cv2.inRange(frame_hsv, (0, 0, 80), (255, 255, 255))
+    mask = 255 - mask
+    contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    blue = frame.copy()
+    bordered = cv2.copyMakeBorder(frame, p, p, p, p, borderType=cv2.BORDER_CONSTANT)
+
+    for i, cnt in enumerate(contours):
+
+        epsilon = 0.05 * cv2.arcLength(cnt, True)
+        approx = cv2.approxPolyDP(cnt, epsilon, True)
+
+        if cv2.contourArea(approx) > 20000:
+            bbox = cv2.boundingRect(approx)
+            x, y, w, h = bbox
+            cv2.rectangle(blue, (x, y), (x + w, y + h), (255, 0, 0), 5)
+            cutted = cut(bordered, bbox)
+
+            if save:
+                cv2.imwrite('detect-' + str(time.time()) + ".jpg", cutted)
+
+            # plt.imshow(cutted[:, :, ::-1])
+            # plt.show()
+
+            detect = {"cut":cutted, "bbox":bbox}
+            detections.append(detect)
+
+    return blue, detections
+
+
+
+def segmentation(bb, paintings_descriptors):
+
+    green = bb.copy()
+    img = cv2.cvtColor(bb, cv2.COLOR_BGR2GRAY)
+    blur = cv2.medianBlur(img, 17)
+    # blur = cv2.GaussianBlur(img, (5, 5), 0)
+    th3 = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 2)
+    th3 = 255 - th3
+
+    contours, _ = cv2.findContours(th3, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     out = None
 
     for cnt in contours:
-
-        epsilon = 0.1 * cv2.arcLength(cnt, True)
+        epsilon = 0.02 * cv2.arcLength(cnt, True)
         approx = cv2.approxPolyDP(cnt, epsilon, True)
-
         if len(approx) == 4:
+            if cv2.contourArea(approx) > 10000:
 
-            if cv2.contourArea(approx) > 20000:
 
-                cv2.drawContours(frame, [approx], 0, (0, 255, 0), 3)
+                rect, out = perspectiveRectification(bb, approx)
+                color = (0, 0, 255)
+                if out is not None and np.size(out) != 0:
+                    ret = retrieval(bb, paintings_descriptors)
+                    plt.subplot(133), plt.xlabel(ret)
+                    plt.subplot(133), plt.imshow(out[:, :, ::-1])
+                    if ret != 'soreta':
+                        color = (0, 255, 0)
 
-                rect_frame, out = perspectiveRectification(original, approx)
+                cv2.drawContours(green, [approx], 0, color, 3)
+                plt.subplot(131), plt.imshow(green[:, :, ::-1])
+                plt.subplot(132), plt.imshow(th3, cmap='gray')
 
-                plt.subplot(221), plt.imshow(original[:, :, ::-1]), plt.title('Input')
-                if np.size(out) != 0:
-                    plt.subplot(224), plt.imshow(out[:, :, ::-1]), plt.title('Output')
-                frame_pr = original.copy()
-                cv2.drawContours(frame_pr, [approx], 0, (0, 255, 0), 3)
-                plt.subplot(222), plt.imshow(frame_pr[:, :, ::-1]), plt.title('Contour')
-                plt.subplot(223), plt.imshow(rect_frame[:, :, ::-1]), plt.title('Warp')
                 plt.show()
-
-    frame, edges = circleDetection(original, frame)
-
-    return frame, mask, edges, out
