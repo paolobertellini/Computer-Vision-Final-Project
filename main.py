@@ -1,80 +1,111 @@
-import cv2
+import csv
 import os
+
+import cv2
 import numpy as np
+
 from paintingDetection import paintingDetection
+from paintingRetrieval import paintingRetrieval
+from perspectiveRectification import perspectiveRectification
 
-paolo_path = 'C:/VCS-project/VCS-project/Project material/videos/all/'
-dav_path = '/media/davide/aukey/progetto_vision/videos/'
-pepp_path = '/media/peppepc/Volume/Peppe/Unimore/Vision and Cognitive Systems/Project material/videos/'
 
-path = paolo_path
-videos = os.listdir(path)
-def nothing(x): pass
+def resize(dim, img):
+    r = dim / rect_painting.shape[1]
+    dim = (dim, int(rect_painting.shape[0] * r))
+    return cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
 
-cv2.namedWindow("Mask trackbars")
-cv2.moveWindow("Mask trackbars", 40, 30)
-cv2.resizeWindow("Mask trackbars", 300, 250)
-cv2.createTrackbar("Hl", "Mask trackbars", 0, 180, nothing)
-cv2.createTrackbar("Sl", "Mask trackbars", 0, 255, nothing)
-cv2.createTrackbar("Vl", "Mask trackbars", 0, 255, nothing)
-cv2.createTrackbar("Hg", "Mask trackbars", 83, 180, nothing)
-cv2.createTrackbar("Sg", "Mask trackbars", 255, 255, nothing)
-cv2.createTrackbar("Vg", "Mask trackbars", 255, 255, nothing)
+best = ['IMG_4076.MOV', 'VIRB0413.MP4', 'IMG_3819.MOV', 'GOPR2039.MP4', 'IMG_2657.MOV',
+        'IMG_2657.MOV', 'GOPR1927.MP4', 'IMG_4075.MOV', 'IMG_4081.MOV', 'IMG_4086.MOV', '20180206_112658.mp4']
 
-cv2.namedWindow("Circles trackbars")
-cv2.moveWindow("Circles trackbars", 40, 350)
-cv2.resizeWindow("Circles trackbars", 300, 500)
-cv2.createTrackbar("k1", "Circles trackbars", 1, 100, nothing)
-cv2.createTrackbar("dist_centri", "Circles trackbars", 1000, 2000, nothing)
-cv2.createTrackbar("p1", "Circles trackbars", 50, 200, nothing)
-cv2.createTrackbar("false_circle", "Circles trackbars", 70, 200, nothing)
-cv2.createTrackbar("minR", "Circles trackbars", 100, 1000, nothing)
-cv2.createTrackbar("maxR", "Circles trackbars", 1000, 1500, nothing)
-cv2.createTrackbar("th1", "Circles trackbars", 100, 300, nothing)
-cv2.createTrackbar("th2", "Circles trackbars", 200, 500, nothing)
+paolo_path = 'D:/VCS-project/'
+dav_path = '/media/davide/aukey/progetto_vision/'
+pepp_path = '/media/peppepc/Volume/Peppe/Unimore/Vision and Cognitive Systems/Project material/'
 
-for videoFile in videos:
+root_path = paolo_path
 
-    video = cv2.VideoCapture(path + videoFile)
+paintingsDB_path = root_path + 'paintings_db/'
+videos_path = root_path + 'videos/'
+
+for root, dirs, files in os.walk(videos_path, topdown=False):
+    for name in files:
+        pass
+
+videos = os.listdir(videos_path)
+videos = np.random.permutation(videos)
+paintings = os.listdir(paintingsDB_path)
+paintings_descriptors = []
+
+paintings_info_file = root_path + 'data.csv'
+with open(paintings_info_file) as file:
+    paintings_info = list(csv.DictReader(file, delimiter=','))
+
+for paintFile in paintings_info:
+    paint = cv2.imread(paintingsDB_path + paintFile['Image'])
+    if paint is not None:
+        orb = cv2.ORB_create()
+        paintKeypoints, paintDescriptors = orb.detectAndCompute(paint, None)
+        paintFile['Desc'] = paintDescriptors
+        paintFile['Painting'] = paint
+
+cv2.namedWindow('Detection', cv2.WINDOW_NORMAL)
+cv2.moveWindow("Detection", 10, 20)
+cv2.resizeWindow("Detection", 500, 400)
+
+cv2.namedWindow('Segmentation', cv2.WINDOW_NORMAL)
+cv2.moveWindow("Segmentation", 10, 480)
+cv2.resizeWindow("Segmentation", 300, 200)
+
+cv2.namedWindow('Rectification', cv2.WINDOW_AUTOSIZE)
+cv2.moveWindow("Rectification", 520, 20)
+
+cv2.namedWindow('Retrieval', cv2.WINDOW_AUTOSIZE)
+cv2.moveWindow("Retrieval", 950, 20)
+
+for videoFile in best:
+    video = cv2.VideoCapture(videos_path + videoFile)
     frame_counter = 0
+    print(videoFile)
 
     while video.isOpened():
-
-        ret, frame = video.read()
-
+        _, frame = video.read()
         if frame is not None:
-
             frame_counter += 1
+            if frame_counter % 4 == 0:
 
-            if frame_counter % 5 == 0:
+                paintingsDetected = paintingDetection(frame)
 
-                frame, mask, edges, out = paintingDetection(frame)
+                frameSegmented = frame.copy()
+                red_frame = np.full(frame.shape, (0, 0, 255), np.uint8)
+                frameSegmented = cv2.addWeighted(frameSegmented, 0.4, red_frame, 0.6, 0)
 
-                # output
-                cv2.namedWindow('Detections', cv2.WINDOW_NORMAL)
-                cv2.moveWindow("Detections", 370, 350)
-                cv2.resizeWindow("Detections", 600, 350)
-                cv2.namedWindow('Mask', cv2.WINDOW_NORMAL)
-                cv2.moveWindow("Mask", 800, 30)
-                cv2.resizeWindow("Mask", 400, 250)
-                cv2.namedWindow('Edges', cv2.WINDOW_NORMAL)
-                cv2.moveWindow("Edges", 370, 30)
-                cv2.resizeWindow("Edges", 400, 250)
-                cv2.namedWindow('Painting', cv2.WINDOW_NORMAL)
-                cv2.moveWindow("Painting", 1000, 350)
+                for pd in paintingsDetected:
+                    if pd['segmentation'] is not None:
 
+                        cv2.drawContours(frameSegmented,
+                                         [pd['segmentation'] + [pd['bbox'][0] - 60, pd['bbox'][1] - 60]], 0,
+                                         (0, 255, 0), -1)
 
-                cv2.imshow('Detections', frame)
-                cv2.imshow('Mask', mask)
-                cv2.imshow('Edges', edges)
-                if out is not None and np.size(out) != 0:
-                    cv2.resizeWindow("Painting", out.shape[1] // 5, out.shape[0] // 5)
-                    cv2.imshow('Painting', out)
+                        rect_painting = perspectiveRectification(pd['cutted'], pd['segmentation'])
 
-        # stop
-        if (cv2.waitKey(1) & 0xFF == ord('n')) or frame_counter == video.get(cv2.CAP_PROP_FRAME_COUNT)-1:
-            video.release()
-            break
+                        if np.size(rect_painting) != 0:
+                            cv2.imshow("Rectification", resize(400, rect_painting))
+
+                        paintingScore, c, info, retrieval = paintingRetrieval(pd['cutted'], paintings_info)
+
+                        x, y, w, h = pd['bbox']
+                        cv2.rectangle(frame, (x, y), (x + w, y + h), c, 5)
+                        cv2.putText(frame, info, (x, y - 15), cv2.FONT_HERSHEY_DUPLEX, 1, (255, 255, 255), 2)
+
+                        cv2.imshow("Retrieval", resize(400, retrieval))
+
+                cv2.imshow('Detection', frame)
+                cv2.imshow('Segmentation', frameSegmented)
+
+            # stop
+            if (cv2.waitKey(1) & 0xFF == ord('n')) or frame_counter == video.get(
+                    cv2.CAP_PROP_FRAME_COUNT) - 1:
+                video.release()
+                break
 
 video.release()
 cv2.destroyAllWindows()

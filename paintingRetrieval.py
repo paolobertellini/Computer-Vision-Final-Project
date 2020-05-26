@@ -1,42 +1,46 @@
 import cv2
-import os
-
-pepp_path = '/media/peppepc/Volume/Peppe/Unimore/Vision and Cognitive Systems/Project material/'
-paolo_path = 'C:/VCS-project/'
-path = paolo_path
-paintings_path = path + 'paintings_db/'
-paintings = os.listdir(paintings_path)
 
 
-image = cv2.imread("detect-1589536183.734341.jpg")
-true = cv2.imread(paintings_path)
-
-def retrieval(img, paintings_descriptors):
-
-    ret = 'soreta'
+def paintingRetrieval(painting, paintings_info):
     orb = cv2.ORB_create()
-    queryKeypoints, queryDescriptors = orb.detectAndCompute(img, None)
-    # trainKeypoints, trainDescriptors = orb.detectAndCompute(true, None)
+    _, paintingDescriptors = orb.detectAndCompute(painting, None)
 
-    for pd in paintings_descriptors:
+    paintingScore = []
+
+    for i, pd in enumerate(paintings_info):
 
         bf = cv2.BFMatcher(cv2.NORM_HAMMING)
-        matches = bf.knnMatch(queryDescriptors, pd['desc'], k = 2)
+        matches = bf.knnMatch(paintingDescriptors, pd['Desc'], k=2)
 
-        good = []
-        for m,n in matches:
-            if m.distance < 0.75*n.distance:
-                good.append([m])
-        if len(good) > 20:
-            print ("similar image", pd['name'])
-            ret = pd['name']
+        score = []
+        for m, n in matches:
+            if m.distance < 0.75 * n.distance:
+                score.append([m])
 
-    return ret
-    # final_img = cv2.drawMatches(image, queryKeypoints, true, trainKeypoints, matches[:10], None)
-    # final_img = cv2.resize(final_img, (1000, 650))
-    #
-    # # Show the final image
-    # cv2.imshow("Matches", final_img)
-    # cv2.waitKey(1000000000)
+        ps = {'index': i, 'n': len(score), 'p': len(score) / (len(pd['Desc']) / 5) * 100}
+        paintingScore.append(ps)
 
+    paintingScore = sorted(paintingScore, key=lambda l: l['n'], reverse=True)
 
+    info = paintings_info[paintingScore[0]['index']]['Title'][:10] + '(' + str(
+        paintingScore[0]['index']) + ')' + '[' + str(paintingScore[0]['p']) + '%]'
+    retrieval = cv2.imread('notfound.png')
+
+    if paintingScore[0]['n'] >= 25:
+        c = (0, 255, 0)
+        retrieval = paintings_info[paintingScore[0]['index']]['Painting']
+
+        # print(paintings_info[paintingScore[0]['index']]['Title'], '(',
+        #       paintings_info[paintingScore[0]['index']]['Image'], ')')
+
+    elif 5 < paintingScore[0]['n'] < 25:
+        c = (0, 255, 255)
+
+        # print('Similar to: ' + paintings_info[paintingScore[0]['index']]['Title'], '(',
+        #       paintings_info[paintingScore[0]['index']]['Image'],
+        #       ')' + '[' + str(paintingScore[0]['n']) + ']')
+
+    else:
+        c = (0, 0, 255)
+
+    return paintingScore, c, info, retrieval
