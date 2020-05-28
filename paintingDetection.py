@@ -1,12 +1,7 @@
 import cv2
 
 
-
-
-
 def paintingDetection(frame):
-
-
     frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     frame_hsv = cv2.erode(frame_hsv, None, iterations=5)
     frame_hsv = cv2.medianBlur(frame_hsv, 25)
@@ -19,7 +14,7 @@ def paintingDetection(frame):
     errors = []
 
     for i, cnt in enumerate(contours):
-        epsilon = 0.05* cv2.arcLength(cnt, True)
+        epsilon = 0.05 * cv2.arcLength(cnt, True)
         approx = cv2.approxPolyDP(cnt, epsilon, True)
 
         if cv2.contourArea(approx) > 15000:
@@ -27,8 +22,5 @@ def paintingDetection(frame):
                 bbox = cv2.boundingRect(approx)
                 x, y, w, h = bbox
                 boxes.append((x, y, x + w, y + h))
-
-
-
 
     return boxes
