@@ -15,7 +15,7 @@ paolo_path = 'D:/VCS-project/'
 dav_path = '/media/davide/aukey/progetto_vision/'
 pepp_path = '/media/peppepc/Volume/Peppe/Unimore/Vision and Cognitive Systems/Project material/'
 
-root_path = paolo_path
+root_path = dav_path
 
 paintings_info = loadPaintingsInfo(root_path)
 
@@ -25,7 +25,7 @@ videos_path = root_path + 'videos/'
 videos = os.listdir(videos_path)
 videos = np.random.permutation(videos)
 
-for videoFile in selection:
+for videoFile in videos:
     video = cv2.VideoCapture(videos_path + videoFile)
     print('WATCHING: ' + videoFile)
     frame_counter = 0

@@ -1,28 +1,14 @@
 import torch
 import torchvision
+import numpy as np
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
 from torchvision.transforms import functional as F
 
 import time
 
-device = torch.device('cpu')
-# device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-
-COCO_INSTANCE_CATEGORY_NAMES = [
-    '__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
-    'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'N/A', 'stop sign',
-    'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
-    'elephant', 'bear', 'zebra', 'giraffe', 'N/A', 'backpack', 'umbrella', 'N/A', 'N/A',
-    'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
-    'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket',
-    'bottle', 'N/A', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl',
-    'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
-    'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed', 'N/A', 'dining table',
-    'N/A', 'N/A', 'toilet', 'N/A', 'painting', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
-    'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'N/A', 'book',
-    'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
-]
+# device = torch.device('cpu')
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 
 def inizializeModel(id):
@@ -41,32 +27,16 @@ def inizializeModel(id):
 def peopleDetection(frame, model, threshold):
     frame = F.to_tensor(frame)
     frame.unsqueeze_(0)
-    start = time.time()
     with torch.no_grad():
         pred = model(frame.to(device))
-    end = time.time()
-    print("Elapset time PyTorch: %fs" % (end - start))
+    people=[]
+    for p in range(len(pred[0]['labels'])):
+        if (pred[0]['scores'][p].cpu().detach().numpy()>threshold) & (pred[0]['labels'][p].cpu().detach().numpy()==1):
+            people.append(tuple(pred[0]['boxes'][p].cpu().detach().numpy().astype(int)))
 
-    pred_score = list(pred[0]['scores'].detach().numpy())
-    pred_t = [pred_score.index(x) for x in pred_score if x > threshold]
 
-    if len(pred_t) != 0:
-        pred_t = pred_t[-1]
-        pred_class = [COCO_INSTANCE_CATEGORY_NAMES[i] for i in list(pred[0]['labels'].numpy())]
-        pred_boxes = [[(i[0], i[1]), (i[2], i[3])] for i in list(pred[0]['boxes'].detach().numpy())]
+    return  people if len(people)!=0 else None
 
-        pred_boxes = pred_boxes[:pred_t + 1]
-        pred_class = pred_class[:pred_t + 1]
-        print(pred_class)
-        lista = []
-        for box in pred_boxes:
-            lista.append((int(box[0][0]), int(box[0][1]), int(box[1][0]), int(box[1][1])))
-        pred_boxes = lista
-
-        # cv2.rectangle(frame, (int(box[0][0][0]), int(box[0][0][1])), (int(box[1][0][0]), int(box[1][0][1])), (255, 0, 0), 5)
-
-        return pred_boxes, pred_class
-    return None, None
 
 
 def get_instance_segmentation_model(num_classes):

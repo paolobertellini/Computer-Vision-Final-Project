@@ -33,8 +33,10 @@ def cut(frame, bbox):
 def removeInnerBox(peopleBoxes, paintingsBoxes):
     boxes = []
     errors = []
-    [boxes.append(i) for i in peopleBoxes]
-    [boxes.append(i) for i in paintingsBoxes]
+    if peopleBoxes is not None:
+        [boxes.append(i) for i in peopleBoxes]
+    if paintingsBoxes is not None:
+        [boxes.append(i) for i in paintingsBoxes]
 
     if boxes is not None:
         for x11, y11, x12, y12 in boxes:
@@ -42,8 +44,10 @@ def removeInnerBox(peopleBoxes, paintingsBoxes):
                 if ((x11 > x21) & (y11 > y21) & (x12 < x22) & (y12 < y22)):
                     errors.append((x11, y11, x12, y12))
         if len(errors) > 0:
-            peopleBoxes = [b for b in peopleBoxes if b not in errors]
-            paintingsBoxes = [b for b in paintingsBoxes if b not in errors]
+            if peopleBoxes is not None:
+                peopleBoxes = [b for b in peopleBoxes if b not in errors]
+            if paintingsBoxes is not None:
+                paintingsBoxes = [b for b in paintingsBoxes if b not in errors]
 
         return peopleBoxes, paintingsBoxes
 

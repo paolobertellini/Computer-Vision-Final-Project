@@ -30,10 +30,10 @@ def pipeline(frame, paintings_info, model):
     red_frame = np.full(frame.shape, (0, 0, 255), np.uint8)
     frameSegmented = cv2.addWeighted(frameSegmented, 0.4, red_frame, 0.6, 0)
 
-    peopleBoxes, classes = peopleDetection(frame, model, 0.8)
+    peopleBoxes = peopleDetection(frame, model, 0.8)
     paintingsBoxes = paintingDetection(frame)
 
-    if (peopleBoxes is not None) & (paintingsBoxes is not None):
+    if (peopleBoxes is not None) | (paintingsBoxes is not None):
         peopleBoxes, paintingsBoxes = removeInnerBox(peopleBoxes, paintingsBoxes)
 
     if peopleBoxes is not None:
@@ -55,7 +55,7 @@ def pipeline(frame, paintings_info, model):
             if np.size(rect_painting) != 0:
                 cv2.imshow("Rectification", resize(400, rect_painting))
 
-            paintingScore, c, info, retrieval = paintingRetrieval(cutted, paintings_info)
+            paintingScore, c, info, retrieval = paintingRetrieval(rect_painting, paintings_info)
 
             cv2.putText(frame, info, (x1, y1 - 15), cv2.FONT_HERSHEY_DUPLEX, 1, (255, 255, 255), 2)
             cv2.imshow("Retrieval", resize(400, retrieval))
