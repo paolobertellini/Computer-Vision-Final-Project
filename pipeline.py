@@ -1,5 +1,3 @@
-import numpy as np
-
 from paintingDetection import paintingDetection
 from paintingRectification import perspectiveRectification
 from paintingRetrieval import paintingRetrieval

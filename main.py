@@ -1,8 +1,5 @@
 import argparse
-import numpy as np
 import os
-import sys
-from pathlib import Path
 
 from peopleDetection import inizializeModel
 from pipeline import pipeline
@@ -20,11 +17,12 @@ def main():
     parser.add_argument('root_path', type=str)
     parser.add_argument('--model', type=str, default='COCO')
     args = parser.parse_args()
-    
+
+
+    # -- PRELIMINAR OPERATIONS --#
+
     # the path containing all the project material
     root_path = args.root_path
-
-    # preliminar operations
 
     # painting database
     paintingsDB = loadPaintingsDB(root_path)
@@ -34,14 +32,19 @@ def main():
 
     # videos
     videos_path = root_path + 'videos/'
-    videos = os.listdir(videos_path)
+    videos = []
+    for root, dirs, files in os.walk(videos_path):
+        for file in files:
+            videos.append(str(root) + '/' + str(file))
     videos = np.random.permutation(videos)
 
     # museum map
     museumMap = cv2.imread(root_path + 'map.png')
 
+    # -- VIDEO ANALYSIS"
+
     for videoFile in videos:
-        video = cv2.VideoCapture(videos_path + videoFile)
+        video = cv2.VideoCapture(videoFile)
         print('WATCHING: ' + videoFile)
         frame_counter = 0
 

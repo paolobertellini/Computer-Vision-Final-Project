@@ -1,9 +1,11 @@
 import csv
+
 import cv2
 import numpy as np
 
 framePadding = 60
 cropPadding = framePadding - 5
+innerBoxPadding = 100
 
 
 # load the painting database
@@ -38,7 +40,6 @@ def crop(frame, bbox):
 
 # remove the boxes contained in bigger ones
 def removeInnerBox(peopleBoxes, paintingsBoxes):
-    x = 100
     boxes = []
     errors = []
     if peopleBoxes is not None:
@@ -50,7 +51,8 @@ def removeInnerBox(peopleBoxes, paintingsBoxes):
         for x11, y11, x12, y12 in boxes:
             for x21, y21, x22, y22 in boxes:
                 if ((x11 != x21) & (y11 != y21) & (x12 != x22) & (y12 != y22)):
-                    if ((x11 > x21 - x) & (y11 > y21 - x) & (x12 < x22 + x) & (y12 < y22 + x)):
+                    if ((x11 > x21 - innerBoxPadding) & (y11 > y21 - innerBoxPadding) & (
+                            x12 < x22 + innerBoxPadding) & (y12 < y22 + innerBoxPadding)):
                         errors.append((x11, y11, x12, y12))
         if len(errors) > 0:
             if peopleBoxes is not None:
