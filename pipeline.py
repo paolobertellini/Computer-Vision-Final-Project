@@ -105,7 +105,6 @@ def pipeline(frame, paintings_info, model, mapMuseum):
         if room != 'UNDEFINED':
             r = np.full(frame.shape, (0, 255, 0), np.uint8)
             cv2.rectangle(museumMap, rooms[room][0], rooms[room][1], (0, 255, 0), -1)
-    #            cv2.addWeighted(museumMap, 0.4, r, 0.6, 0)
 
     cv2.imshow('Detection', detection_frame)
     cv2.imshow('Segmentation', segmentation_frame)
