@@ -18,7 +18,6 @@ def main():
     parser.add_argument('--model', type=str, default='COCO')
     args = parser.parse_args()
 
-
     # -- PRELIMINAR OPERATIONS --#
 
     # the path containing all the project material
