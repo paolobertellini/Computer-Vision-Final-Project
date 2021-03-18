@@ -7,8 +7,10 @@
 - Caputo Imbriaco Davide
 - Doganieri Giuseppe
 
-## Full report
-[Overleef](https://www.overleaf.com/read/shnjmbddzjnf)
+## Documentation
+[Report paper on Overleef](https://www.overleaf.com/read/shnjmbddzjnf)
+<br>
+[Report presentation and paper](/documentation)
 
 ## Overview
 The purpose of the project is to create a visual system capable to detect and recognize the paintings exhibited in ”Gallerie Estensi” museum of Modena and locating people that are visiting the museum understanding the room in which they are. The system in the future can be used by a robot for visiting the museum in an autonomous manner or can be installed on a mobile application to improve and guide the visitor’s experience.
