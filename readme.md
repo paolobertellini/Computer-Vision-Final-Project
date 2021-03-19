@@ -4,7 +4,7 @@
 ## Authors
 
 - [Bertellini Paolo](https://github.com/paolobertellini)
-- Caputo Imbriaco Davide
+- [Caputo Imbriaco Davide](https://github.com/davcapimb)
 - [Doganieri Giuseppe](https://github.com/gdoganieri)
 
 ## Documentation
