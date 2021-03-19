@@ -5,7 +5,7 @@
 
 - [Bertellini Paolo](https://github.com/paolobertellini)
 - Caputo Imbriaco Davide
-- Doganieri Giuseppe
+- [Doganieri Giuseppe](https://github.com/gdoganieri)
 
 ## Documentation
 [Report paper on Overleef](https://www.overleaf.com/read/shnjmbddzjnf)
